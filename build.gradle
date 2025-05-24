@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Testing frameworks
+    testImplementation 'io.cucumber:cucumber-java:7.14.0'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.14.0'
+    testImplementation 'org.junit.platform:junit-platform-suite:1.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+
+    // REST API testing
+    testImplementation 'io.rest-assured:rest-assured:5.3.2'
+    testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
+
+    // WireMock for API mocking - using standalone version
+    testImplementation 'com.github.tomakehurst:wiremock-jre8-standalone:2.35.0'
+
+    // JSON processing
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.2'
+
+    // Assertions
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+
+    // Logging
+    testImplementation 'ch.qos.logback:logback-classic:1.4.11'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed", "standard_out"
+    }
+}
