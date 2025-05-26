@@ -78,8 +78,8 @@ public class UserProfileStepDefinitions {
         testConfig.setupUserNotFoundStub(userId);
     }
 
-    @When("I create a user with the following details:")
-    public void iCreateAUserWithTheFollowingDetails(DataTable dataTable) {
+    @When("I create a user with details:")
+    public void iCreateAUserWithDetails(DataTable dataTable) {
         Map<String, String> userData = dataTable.asMap(String.class, String.class);
 
         currentUser = User.builder()
@@ -94,6 +94,45 @@ public class UserProfileStepDefinitions {
         response = requestSpec
                 .body(currentUser)
                 .post("/users");
+    }
+
+    @When("I attempt to create a user with invalid data:")
+    public void iAttemptToCreateAUserWithInvalidData(DataTable dataTable) {
+        Map<String, String> userData = dataTable.asMap(String.class, String.class);
+
+        User invalidUser = User.builder()
+                .firstName(userData.get("firstName"))
+                .lastName(userData.get("lastName"))
+                .email(userData.get("email"))
+                .age(userData.get("age").isEmpty() ? 0 : Integer.parseInt(userData.get("age")))
+                .build();
+
+        testConfig.setupValidationErrorStub(userData);
+
+        response = requestSpec
+                .body(invalidUser)
+                .post("/users");
+    }
+
+    @When("I update the user profile with details:")
+    public void iUpdateTheUserProfileWithDetails(DataTable dataTable) {
+        Map<String, String> userData = dataTable.asMap(String.class, String.class);
+
+        User updatedUser = User.builder()
+                .id(currentUser != null ? currentUser.getId() : "test-123")
+                .firstName(userData.get("firstName"))
+                .lastName(userData.get("lastName"))
+                .email(userData.get("email"))
+                .age(Integer.parseInt(userData.get("age")))
+                .build();
+
+        testConfig.setupUpdateUserStub(updatedUser);
+
+        response = requestSpec
+                .body(updatedUser)
+                .put("/users/" + updatedUser.getId());
+
+        currentUser = updatedUser;
     }
 
     @When("I request the user profile for ID {string}")
@@ -156,13 +195,35 @@ public class UserProfileStepDefinitions {
         currentUser.setId(userId);
     }
 
-    @Then("the user details should match the provided information")
-    public void theUserDetailsShouldMatchTheProvidedInformation() {
+    @Then("the user should have firstName {string}")
+    public void theUserShouldHaveFirstName(String expectedFirstName) {
+        response.then().body("firstName", equalTo(expectedFirstName));
+    }
+
+    @Then("the user should have lastName {string}")
+    public void theUserShouldHaveLastName(String expectedLastName) {
+        response.then().body("lastName", equalTo(expectedLastName));
+    }
+
+    @Then("the user should have email {string}")
+    public void theUserShouldHaveEmail(String expectedEmail) {
+        response.then().body("email", equalTo(expectedEmail));
+    }
+
+    @Then("the user should have age {int}")
+    public void theUserShouldHaveAge(int expectedAge) {
+        response.then().body("age", equalTo(expectedAge));
+    }
+
+    @Then("the updated profile should contain:")
+    public void theUpdatedProfileShouldContain(DataTable dataTable) {
+        Map<String, String> expectedData = dataTable.asMap(String.class, String.class);
+
         response.then()
-                .body("firstName", equalTo(currentUser.getFirstName()))
-                .body("lastName", equalTo(currentUser.getLastName()))
-                .body("email", equalTo(currentUser.getEmail()))
-                .body("age", equalTo(currentUser.getAge()));
+                .body("firstName", equalTo(expectedData.get("firstName")))
+                .body("lastName", equalTo(expectedData.get("lastName")))
+                .body("email", equalTo(expectedData.get("email")))
+                .body("age", equalTo(Integer.parseInt(expectedData.get("age"))));
     }
 
     @Then("the user profile should be returned")
